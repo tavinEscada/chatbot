@@ -1,0 +1,115 @@
+Explicação do Código:
+
+Lembretes: 
+	1 - No Python não precisamos colocar ponto e virgula (;) ao final de cada comando, ele entende que cada linha de codigo, é um comando diferente
+	2 - Se atente a identação
+	
+------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
+
+Instalar a biblioteca responsavel por vincular nosso bot do telegram ao codigo 
+	
+	! pip install pytelegrambotapi
+
+------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
+
+Importar as bibliotecas que iremos utilizar no projeto
+
+1º: telebot - biblioteca instalada anteriormente
+	
+	import telebot
+
+2º: requests - biblioteca que permite realizar requisições web, é com ela que iremos enviar o signo para a API do Horoscopo para pegarmos a resposta referente
+	
+	import requests
+
+------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
+
+Salvar a CHAVE gerada pelo Bot em uma variavel, lembre-se que é essa chave, juntamente com o telebot, que nos permite vincular o codigo ao bot 
+	
+	CHAVE = "Cole sua chave aqui"
+	
+OBS: No Python não precisamos dizer qual o tipo da variavel quando estamos atribuindo um valor a ela, ele saberá qual o tipo da variavel pelo valor atribuido a ela.
+
+------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
+
+ Passar a CHAVE do bot para o telebot para que ele seja vinculado ao bot do telegram e armazenamos essa configuração em uma variavel chamada bot, para que toda a personalização seja feita com ela 
+	
+	bot = telebot.TeleBot(CHAVE)
+
+------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
+	
+Vamos criar as funcionalidades do chatbot, ou seja, o que ele irá fazer/responder, separando uma função para cada 
+No Python definimos uma função com: 'def nome_da_funcao():' , e dentro do parenteses podemos especificar que iremos receber algum parametro ou nao, também não precisamos definir na função se ela irá retornar algo ou não 
+
+------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
+
+1º função: Mensagem Inicial do ChatBot: vamos criar uma função que envie uma mensagem de saudação/boas-vindas sempre que alguem enviar uma mensagem para ele 
+	
+	@bot.message_handler()
+	def inicio(mensagem):
+    		if(msg.text == "/horoscopo"):
+      			signo(mensagem)
+   		else:
+     			 bot.reply_to(mensagem, "Oiii, eu sou um ChatBot desenvolvido com Python 🤖\n\nE estou aqui para lhe informar seu horóscopo 🔮\n\nEntão, para receber seu Horoscopo de Hoje, digite /horoscopo")
+
+-> Calma calma que vou te explicar cada linha do codigo acima: 
+	1 - A primeira linha é um 'manipulador de mensagens', serve para dizer que toda mensagem enviada ao BOT irá acionar nossa função inicial
+	2 - A segunda linha é a criação da função inicio e estamos passando como parametro a mensagem, essa mensagem é a propria mensagem recebida pelo chatbot
+	3 - O IF e o ELSE são para validarmos as mensagens enviadas pelo usuario, no ELSE, o chatbot irá responder qualquer mensagem com a saudação, porém no IF se o usuario digitar /horoscopo irá chamar nossa segunda função, enviando a mensagem do usuario para ela tambem
+	
+
+------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
+
+2º função: Perguntar o Signo do Usuario: vamos criar uma função que ira enviar uma mensagem perguntando qual o signo do usuario, e ira enviar esse signo a nossa terceira função 
+
+	def signo(mensagem):
+		signos = "Qual é seu Signo? 🔮\nEscolha um:\n*♈️ Aries*\n*♉️ Touro*\n*♊️ Gemeos*\n*♋️ Cancer*\n*♌️ Leao*\n*♍️ Virgem*\n*♎️ Libra*\n*♏️ Escorpiao*\n*♐️ Sagitario*\n*♑️ Capricornio*\n*♒️ Aquario*\n*♓️ Peixes*"
+    		enviar_msg = bot.send_message(mensagem.chat.id, signos, parse_mode="Markdown")
+    		bot.register_next_step_handler(enviar_msg, horoscopo)
+    		
+-> Explicação do codigo acima:
+	1 - A primeira linha é a criação da função signo e estamos passando como parametro a mensagem, essa mensagem é a propria mensagem recebida anteriormente pelo chatbot
+	2 - A segunda linha estamos armazenando o texto da pergunta de qual o signo, na variavel signos
+	3 - A terceira linha é para enviar o texto de pergunta como resposta a mensagem recebida, e estamos armazenando na variavel enviar_msg a resposta do usuario
+	4 - A ultima linha é para dizer que o proximo passo será enviar a resposta do usuario a nossa terceira função que ira buscar o horoscopo 
+	
+------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
+
+3º função: Pesquisar o Horoscopo do signo escolhido e responder ao usuario: essa função ira enviar o signo a quarta funcionalidade para pegar o horoscopo da API referente ao signo, e ira responder ao usuario
+
+	def horoscopo(mensagem):
+	    signo = mensagem.text
+	    resposta = horoscopo_diario(signo)
+	    titulo = resposta['title']
+	    data = resposta['date']
+	    texto = resposta['text']
+	    horoscopo_mensagem = f'*{titulo}*\n\n*Signo:* {signo}\n*Dia:* {data}\n\n{texto}'
+	    bot.send_message(mensagem.chat.id, "Aqui está o seu horóscopo!")
+	    bot.send_message(mensagem.chat.id, horoscopo_mensagem, parse_mode="Markdown")
+	    
+-> Explicação do codigo acima:
+	1 - A primeira linha é a criação da função horoscopo e estamos passando como parametro a mensagem, essa mensagem é o proprio signo recebida na mensagem anteriormente pelo chatbot
+	2 - A segunda linha estamos armazenando o texto da mensagem, ou seja, o signo, na variavel signo
+	3 - A terceira linha é para enviar o signo escolhido a quarta função, e armazenar o retorno na variavel resposta
+	4 - A quarta, quinta e sexta linhas é para extrairmos as partes que vieram na resposta, sendo elas o titulo, data e o texto do horoscopo 
+	5 - A setima linha é para formatarmos a mensagem que iremos enviar ao usuario
+	6 - A oitava linha é para enviarmos a mensagem "Aqui esta o seu horoscopo!" ao usuario, antes de enviarmos o horoscopo
+	7 - A ultima linha é para enviarmos o horoscopo ao usuario
+
+------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
+
+4º função: Realizar a requisição a API de Horoscopo: vamos criar uma função que ira realizar a requsição a API e retornar sua resposta
+	def horoscopo_diario(signo):
+	   #Aqui iremos pegar o codigo juntos na API de Horoscopo
+	   
+	  resposta = requests.get(url, headers=headers)
+
+	  return resposta.json()
+	  
+------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
+
+Por fim, precisamos inicializar o bot com o seguinte comando:
+	
+	bot.infinity_polling()
+
+
